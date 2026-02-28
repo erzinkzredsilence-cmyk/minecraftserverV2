@@ -9,11 +9,11 @@ const client = bedrock.createClient({
     host: 'zeingaymakmak.mc.in.th', // From your panel
     port: 27677,            // Default Bedrock port
     username: 'Zeincodgay',
-    offline: true           // Set to false if server needs Xbox login
+    offline: false           // Set to false if server needs Xbox login
 });
 
 client.on('spawn', () => {
-    console.log('Zeincodgay joined Bedrock server!');
+    console.log('Bot joined Bedrock server!');
 
     // Bedrock tracking is different, but this joins the game
     setInterval(() => {
