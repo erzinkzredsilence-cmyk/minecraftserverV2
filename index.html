@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proximity Chat Client</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; padding-top: 50px; }
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
+        #status { margin-top: 20px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>Proximity Chat</h1>
+    <p>กดปุ่มเพื่อเริ่มใช้งานไมโครโฟน</p>
+    <button id="startBtn">เปิดไมโครโฟน</button>
+    <div id="status">สถานะ: ยังไม่ได้เชื่อมต่อ</div>
+
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script>
+        // --- ส่วนตั้งค่า ---
+        const RENDER_URL = 'https://minecraftvoiceserver.onrender.com'; // แก้ไขเป็น URL ของคุณ
+        // ------------------
+
+        const socket = io(RENDER_URL);
+        const statusDiv = document.getElementById('status');
+        const startBtn = document.getElementById('startBtn');
+
+        socket.on('connect', () => {
+            statusDiv.innerText = 'สถานะ: เชื่อมต่อกับ Server แล้ว';
+            statusDiv.style.color = 'green';
+        });
+
+        startBtn.addEventListener('click', async () => {
+            try {
+                // ขออนุญาตใช้ไมโครโฟน
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                const mediaRecorder = new MediaRecorder(stream);
+                
+                statusDiv.innerText = 'สถานะ: กำลังบันทึกเสียง...';
+                startBtn.disabled = true;
+
+                mediaRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) {
+                        // ส่งข้อมูลเสียงไปที่ Server
+                        socket.emit('voice-data', event.data);
+                    }
+                };
+
+                // ส่งข้อมูลเสียงทุกๆ 100ms
+                mediaRecorder.start(100);
+
+            } catch (err) {
+                console.error('Error accessing microphone:', err);
+                statusDiv.innerText = 'Error: ไม่สามารถเข้าถึงไมโครโฟนได้ (ต้องรันผ่าน HTTPS หรือ Localhost)';
+                statusDiv.style.color = 'red';
+            }
+        });
+    </script>
+</body>
+</html>
